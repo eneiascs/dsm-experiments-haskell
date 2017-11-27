@@ -21,12 +21,18 @@ compileApplication ::(Treatment,ExperimentalObject, DependentVariable) -> Applic
 compileApplication (treatment,object, depVariable) = Application (instrumentCommand depVariable) (treatmentCommand treatment) (argument object)
 
 generateListOfExecutions :: Experiment -> [(Treatment,ExperimentalObject,DependentVariable)]
-generateListOfExecutions experiment = concatMap (applyDesign (design experiment) (objects experiment)) (researchHypotheses experiment)
+generateListOfExecutions experiment = concatMap (replicate (runs (design experiment))) (removeDuplicates treatmentApplicationDependentVariable)
+  where treatmentApplicationDependentVariable = (concatMap (applyDesign (design experiment) (objects experiment)) (researchHypotheses experiment))
 
 applyDesign :: ExperimentalDesign -> [ExperimentalObject]-> ResearchHypothesis -> [(Treatment,ExperimentalObject,DependentVariable)]
-applyDesign design objects hypothesis = concatMap (replicate (runs design))  treatmentApplicationDependentVariable
+applyDesign design objects hypothesis = map ((\a (b,c) -> (b,c,a)) (dependentVariable hypothesis)) treatmentApplication
   where treatmentApplication = (designFunction design) [treatment1 hypothesis, treatment2 hypothesis] objects
-        treatmentApplicationDependentVariable = map ((\a (b,c) -> (b,c,a)) (dependentVariable hypothesis)) treatmentApplication
+ 
+removeDuplicates :: (Eq a) => [a] -> [a]
+removeDuplicates [] = []
+removeDuplicates (x:xs) | x `elem` xs   = removeDuplicates xs
+                        | otherwise     = x : removeDuplicates xs
+
 
 createExecutionResult :: ((Treatment,ExperimentalObject, DependentVariable),IO Float)->ExecutionResult
 createExecutionResult ((treat, obj, depVariable), value) = ExecutionResult (dvName depVariable) (treatmentName treat) (objectName obj) value

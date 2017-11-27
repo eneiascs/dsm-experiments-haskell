@@ -1,16 +1,14 @@
 module Experiment where
 import Dohko
 import RScript
+import ExecutionResult
 
 data Experiment = Experiment {researchHypotheses :: [ResearchHypothesis], design :: ExperimentalDesign, treatments:: [Treatment], objects:: [ExperimentalObject], dependentVariables :: [DependentVariable]} 
 data ResearchHypothesis = ResearchHypothesis {hypothesisName :: String, dependentVariable :: DependentVariable, treatment1 :: Treatment, treatment2 :: Treatment} deriving (Show, Eq, Ord) 
 data DependentVariable = DependentVariable {dvName :: String, instrumentCommand :: String} deriving (Show, Eq, Ord) 
-
 data ExperimentalDesign =  ExperimentalDesign {runs :: Int, designFunction :: [Treatment]->[ExperimentalObject] ->[(Treatment,ExperimentalObject)] } 
 data Treatment = Treatment {treatmentName :: String, treatmentCommand :: String} deriving (Show, Eq, Ord) 
 data ExperimentalObject = ExperimentalObject {objectName :: String, argument:: String} deriving (Show, Eq, Ord)
-
-
 
 experiment :: Experiment -> [TestResult]
 experiment exp= analyze  executionResults (generateRScript exp) 
@@ -39,7 +37,6 @@ cartesianProductDesign treatments objects =[(treatment,object) | treatment <- tr
 generateRScript :: Experiment -> RScript
 generateRScript experiment = RScript (concatMap (generateHypothesisTests (objects experiment) (design experiment)) (researchHypotheses experiment)) 
 
-
 generateHypothesisTests :: [ExperimentalObject] -> ExperimentalDesign -> ResearchHypothesis -> [AnalysisTest] 
 generateHypothesisTests objects design hypothesis = map (createAnalysisTest hypothesis) commonObjects
   where treatmentApplication = (designFunction design) [treatment1 hypothesis, treatment2 hypothesis] objects
@@ -52,5 +49,4 @@ createAnalysisTest  rh object = AnalysisTest wilcoxTest argument1 argument2
 
 wilcoxTest :: [ExecutionResult]->[ExecutionResult]->TestResult
 wilcoxTest sample1 sample2 = TestResult "some result" 
-
 

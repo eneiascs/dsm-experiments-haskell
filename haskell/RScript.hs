@@ -1,5 +1,5 @@
 module RScript where
-import Dohko
+import ExecutionResult
 data RScript = RScript {analysisTests :: [AnalysisTest]} 
 data AnalysisTest = AnalysisTest {analysisFunction :: [ExecutionResult]->[ExecutionResult]->TestResult, argument1 :: Argument, argument2::Argument} 
 data Argument = Argument {argDvName :: String, argTreatmentName :: String, argObjectName ::String} deriving (Show, Eq, Ord)
